@@ -45,9 +45,12 @@ function main() {
     var btnGroup = dlg.add("group");
     btnGroup.alignment = "right";
     var okBtn = btnGroup.add("button", undefined, "OK");
-    var cancelBtn = btnGroup.add("button", undefined, "キャンセル");
+    var cancelBtn = btnGroup.add("button", undefined, "キャンセル", {name: "cancel"});
 
-    if (dlg.show() != 1) return; // キャンセルで終了
+    var result = dlg.show();
+    if (result != 1) {
+        return;
+    }
 
     var masterName = masterDropdown.selection.text;
     var masterSpread = doc.masterSpreads.item(masterName);
