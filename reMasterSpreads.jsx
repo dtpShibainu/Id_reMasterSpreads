@@ -49,20 +49,28 @@ function main() {
 
     var result = dlg.show();
     if (result != 1) {
-        return;
+        return; // キャンセル時は閉じて終了
     }
 
     var masterName = masterDropdown.selection.text;
     var masterSpread = doc.masterSpreads.item(masterName);
 
+    // ドキュメントの論理ページ番号の最初と最後を取得
+    var firstPageNum = parseInt(doc.pages[0].name, 10);
+    var lastPageNum  = parseInt(doc.pages[-1].name, 10);
+
     // ページ指定解析
     var pages = [];
     if (oddBtn.value) {
-        for (var i = 1; i <= doc.pages.length; i += 2) pages.push(i);
+        for (var i = firstPageNum; i <= lastPageNum; i++) {
+            if (i % 2 !== 0) pages.push(i);
+        }
     } else if (evenBtn.value) {
-        for (var i = 2; i <= doc.pages.length; i += 2) pages.push(i);
+        for (var i = firstPageNum; i <= lastPageNum; i++) {
+            if (i % 2 === 0) pages.push(i);
+        }
     } else if (customBtn.value) {
-        pages = parsePages(pageInput.text, doc.pages.length);
+        pages = parsePages(pageInput.text, firstPageNum, lastPageNum);
     }
 
     // 親ページ適用
@@ -76,21 +84,23 @@ function main() {
     alert("親ページ「" + masterName + "」を " + pages.length + " ページに適用しました。");
 }
 
-// ページ指定文字列を解析する関数
-function parsePages(input, maxPage) {
+// ページ指定文字列を解析する関数（論理ページ番号対応）
+function parsePages(input, firstPageNum, lastPageNum) {
     var result = [];
     input = input.replace(/\s+/g, "");
 
     var parts = input.split(",");
     for (var i = 0; i < parts.length; i++) {
         if (parts[i].match(/^\d+$/)) {
-            result.push(parseInt(parts[i], 10));
+            var n = parseInt(parts[i], 10);
+            if (n >= firstPageNum && n <= lastPageNum) result.push(n);
         } else if (parts[i].match(/^(\d+)-(\d+)$/)) {
             var m = parts[i].match(/^(\d+)-(\d+)$/);
             var start = parseInt(m[1], 10);
             var end = parseInt(m[2], 10);
+            if (start > end) { var tmp = start; start = end; end = tmp; }
             for (var j = start; j <= end; j++) {
-                if (j <= maxPage) result.push(j);
+                if (j >= firstPageNum && j <= lastPageNum) result.push(j);
             }
         }
     }
